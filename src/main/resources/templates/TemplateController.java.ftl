@@ -25,12 +25,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
-/**
- * ${dataName}接口
- *
- * @author <a href="https://github.com/liyupi">程序员鱼皮</a>
- * @from <a href="https://www.code-nav.cn">编程导航学习圈</a>
- */
 @RestController
 @RequestMapping("/${dataKey}")
 @Slf4j
@@ -44,13 +38,6 @@ public class ${upperDataKey}Controller {
 
     // region 增删改查
 
-    /**
-     * 创建${dataName}
-     *
-     * @param ${dataKey}AddRequest
-     * @param request
-     * @return
-     */
     @PostMapping("/add")
     public BaseResponse<Long> add${upperDataKey}(@RequestBody ${upperDataKey}AddRequest ${dataKey}AddRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(${dataKey}AddRequest == null, ErrorCode.PARAMS_ERROR);
@@ -70,13 +57,6 @@ public class ${upperDataKey}Controller {
         return ResultUtils.success(new${upperDataKey}Id);
     }
 
-    /**
-     * 删除${dataName}
-     *
-     * @param deleteRequest
-     * @param request
-     * @return
-     */
     @PostMapping("/delete")
     public BaseResponse<Boolean> delete${upperDataKey}(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
         if (deleteRequest == null || deleteRequest.getId() <= 0) {
@@ -97,12 +77,6 @@ public class ${upperDataKey}Controller {
         return ResultUtils.success(true);
     }
 
-    /**
-     * 更新${dataName}（仅管理员可用）
-     *
-     * @param ${dataKey}UpdateRequest
-     * @return
-     */
     @PostMapping("/update")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> update${upperDataKey}(@RequestBody ${upperDataKey}UpdateRequest ${dataKey}UpdateRequest) {
@@ -124,12 +98,6 @@ public class ${upperDataKey}Controller {
         return ResultUtils.success(true);
     }
 
-    /**
-     * 根据 id 获取${dataName}（封装类）
-     *
-     * @param id
-     * @return
-     */
     @GetMapping("/get/vo")
     public BaseResponse<${upperDataKey}VO> get${upperDataKey}VOById(long id, HttpServletRequest request) {
         ThrowUtils.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
@@ -140,12 +108,6 @@ public class ${upperDataKey}Controller {
         return ResultUtils.success(${dataKey}Service.get${upperDataKey}VO(${dataKey}, request));
     }
 
-    /**
-     * 分页获取${dataName}列表（仅管理员可用）
-     *
-     * @param ${dataKey}QueryRequest
-     * @return
-     */
     @PostMapping("/list/page")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Page<${upperDataKey}>> list${upperDataKey}ByPage(@RequestBody ${upperDataKey}QueryRequest ${dataKey}QueryRequest) {
@@ -157,13 +119,6 @@ public class ${upperDataKey}Controller {
         return ResultUtils.success(${dataKey}Page);
     }
 
-    /**
-     * 分页获取${dataName}列表（封装类）
-     *
-     * @param ${dataKey}QueryRequest
-     * @param request
-     * @return
-     */
     @PostMapping("/list/page/vo")
     public BaseResponse<Page<${upperDataKey}VO>> list${upperDataKey}VOByPage(@RequestBody ${upperDataKey}QueryRequest ${dataKey}QueryRequest,
                                                                HttpServletRequest request) {
@@ -178,13 +133,6 @@ public class ${upperDataKey}Controller {
         return ResultUtils.success(${dataKey}Service.get${upperDataKey}VOPage(${dataKey}Page, request));
     }
 
-    /**
-     * 分页获取当前登录用户创建的${dataName}列表
-     *
-     * @param ${dataKey}QueryRequest
-     * @param request
-     * @return
-     */
     @PostMapping("/my/list/page/vo")
     public BaseResponse<Page<${upperDataKey}VO>> listMy${upperDataKey}VOByPage(@RequestBody ${upperDataKey}QueryRequest ${dataKey}QueryRequest,
                                                                  HttpServletRequest request) {
@@ -203,13 +151,6 @@ public class ${upperDataKey}Controller {
         return ResultUtils.success(${dataKey}Service.get${upperDataKey}VOPage(${dataKey}Page, request));
     }
 
-    /**
-     * 编辑${dataName}（给用户使用）
-     *
-     * @param ${dataKey}EditRequest
-     * @param request
-     * @return
-     */
     @PostMapping("/edit")
     public BaseResponse<Boolean> edit${upperDataKey}(@RequestBody ${upperDataKey}EditRequest ${dataKey}EditRequest, HttpServletRequest request) {
         if (${dataKey}EditRequest == null || ${dataKey}EditRequest.getId() <= 0) {
@@ -235,5 +176,5 @@ public class ${upperDataKey}Controller {
         return ResultUtils.success(true);
     }
 
-    // endregion
+
 }

@@ -9,12 +9,6 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
-/**
- * ${dataName}视图
- *
- * @author <a href="https://github.com/liyupi">程序员鱼皮</a>
- * @from <a href="https://www.code-nav.cn">编程导航学习圈</a>
- */
 @Data
 public class ${upperDataKey}VO implements Serializable {
 
@@ -22,16 +16,6 @@ public class ${upperDataKey}VO implements Serializable {
      * id
      */
     private Long id;
-
-    /**
-     * 标题
-     */
-    private String title;
-
-    /**
-     * 内容
-     */
-    private String content;
 
     /**
      * 创建用户 id
@@ -47,11 +31,6 @@ public class ${upperDataKey}VO implements Serializable {
      * 更新时间
      */
     private Date updateTime;
-
-    /**
-     * 标签列表
-     */
-    private List<String> tagList;
 
     /**
      * 创建用户信息
