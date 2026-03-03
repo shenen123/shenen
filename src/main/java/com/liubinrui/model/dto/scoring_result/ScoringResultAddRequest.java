@@ -4,12 +4,6 @@ import lombok.Data;
 
 import java.io.Serializable;
 
-/**
- * 创建评分结果请求
- *
- * @author <a href="https://github.com/liyupi">程序员鱼皮</a>
- * @from <a href="https://www.code-nav.cn">编程导航学习圈</a>
- */
 @Data
 public class ScoringResultAddRequest implements Serializable {
     /**
@@ -23,19 +17,14 @@ public class ScoringResultAddRequest implements Serializable {
     private String resultDesc;
 
     /**
-     * 结果图片
-     */
-    private String resultPicture;
-
-    /**
      * 结果属性集合 JSON，如 [I,S,T,J]
      */
     private String resultProp;
 
     /**
-     * 结果得分范围，如 80，表示 80及以上的分数命中此结果
+     * 结果得分
      */
-    private Integer resultScoreRange;
+    private Integer resultScore;
 
     /**
      * 应用 id

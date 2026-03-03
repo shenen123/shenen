@@ -47,11 +47,6 @@ public class ScoringResultServiceImpl extends ServiceImpl<ScoringResultMapper, S
     @Resource
     private UserAnswerMapper userAnswerMapper;
 
-    /**
-     * 校验数据
-     * @param scoring_result
-     * @param add
-     */
     @Override
     public void validScoringResult(ScoringResult scoring_result, boolean add) {
         ThrowUtils.throwIf(scoring_result == null, ErrorCode.PARAMS_ERROR);

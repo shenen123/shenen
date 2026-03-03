@@ -3,9 +3,11 @@ package com.liubinrui;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.cache.CacheAutoConfiguration;
 
-@SpringBootApplication
+@SpringBootApplication(exclude = CacheAutoConfiguration.class)
 @MapperScan("com.liubinrui.mapper")
+
 public class LldatiApplication {
 
     public static void main(String[] args) {

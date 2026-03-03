@@ -50,4 +50,11 @@ public interface QuestionService extends IService<Question> {
      * @return
      */
     Page<QuestionVO> getQuestionVOPage(Page<Question> questionPage, HttpServletRequest request);
+
+    /**
+     * 获取应用里的题目列表
+     * @param appId
+     * @return
+     */
+    List<Question>getQuestions(Long appId);
 }

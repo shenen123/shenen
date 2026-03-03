@@ -17,10 +17,9 @@ import com.liubinrui.model.entity.ScoringResult;
 import com.liubinrui.model.entity.User;
 import com.liubinrui.model.entity.UserAnswer;
 import com.liubinrui.model.vo.ScoringResultVO;
-import com.liubinrui.service.AppService;
-import com.liubinrui.service.QuestionService;
-import com.liubinrui.service.UserAnswerService;
-import com.liubinrui.service.UserService;
+import com.liubinrui.service.*;
+import com.liubinrui.strategy.ScoringStrategy;
+import com.liubinrui.strategy.question.MBTIScoringStrategy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
@@ -30,31 +29,72 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
 import java.util.List;
 
-/**
- * 评分结果接口
- *
- * @author <a href="https://github.com/liyupi">程序员鱼皮</a>
- * @from <a href="https://www.code-nav.cn">编程导航学习圈</a>
- */
 @RestController
 @RequestMapping("/scoringResult")
 @Slf4j
 public class ScoringResultController {
 
-
+    @Resource
+    private ScoringResultService scoringResultService;
     @Resource
     private UserService userService;
-
     @Resource
     private AppService appService;
     @Resource
     private UserAnswerService userAnswerService;
+    // region 增删改查
+    @Resource
+    private List<ScoringStrategy> scoringStrategyList;
+
+    @PostMapping("/ai_score")
+    public BaseResponse<ScoringResult> aiScoreByAnswerId(@RequestParam Long answerId,
+                                                         HttpServletRequest request) {
+        // 1. 参数校验
+        ThrowUtils.throwIf(answerId == null || answerId <= 0, ErrorCode.PARAMS_ERROR);
+
+        // 2. 获取当前用户
+        User loginUser = userService.getLoginUser(request);
+
+        // 3. 获取用户答题记录
+        UserAnswer userAnswer = userAnswerService.getById(answerId);
+        ThrowUtils.throwIf(userAnswer == null, ErrorCode.NOT_FOUND_ERROR);
+        ThrowUtils.throwIf(!userAnswer.getUserId().equals(loginUser.getId()), ErrorCode.NO_AUTH_ERROR);
+        Long appId = userAnswer.getAppId();
+
+        // 4. 获取 App 信息
+        App app = appService.getById(appId);
+        ThrowUtils.throwIf(app == null, ErrorCode.NOT_FOUND_ERROR);
+
+        // 5. 构造请求 DTO（匹配 AIScoreStrategy 的 execute 方法参数）
+        ScoringResultAddRequest scoringRequest = new ScoringResultAddRequest();
+        scoringRequest.setAppId(appId);
+        scoringRequest.setAnswerId(answerId);
+
+        // 6. 创建结果实体（由策略填充）
+        ScoringResult scoringResult = new ScoringResult();
+        scoringResult.setAppId(appId);
+        scoringResult.setUserId(loginUser.getId());
+        scoringResult.setCreateTime(new Date());
+        scoringResult.setUpdateTime(new Date());
+
+        // 7. 获取并执行评分策略
+        ScoringStrategy strategy = scoringStrategyList.stream()
+                .filter(s -> s.supports(app.getAppType()))
+                .findFirst()
+                .orElseThrow(() -> new BusinessException(ErrorCode.PARAMS_ERROR, "该应用不支持自动评分"));
+        strategy.execute(scoringRequest, scoringResult);
+        // 8. 保存评分结果
+        boolean saved = scoringResultService.save(scoringResult);
+        ThrowUtils.throwIf(!saved, ErrorCode.SYSTEM_ERROR, "评分结果保存失败");
+
+        return ResultUtils.success(scoringResult);
+    }
 
     @PostMapping("/add")
     public BaseResponse<Long> addScoringResult(@RequestBody ScoringResultAddRequest scoringResultAddRequest, HttpServletRequest request) {
         //点击确认自动调用这个接口
         ThrowUtils.throwIf(scoringResultAddRequest == null, ErrorCode.PARAMS_ERROR);
-        // todo 在此处将实体类和 DTO 进行转换
+
         ScoringResult scoringResult = new ScoringResult();
         BeanUtils.copyProperties(scoringResultAddRequest, scoringResult);
         Long appId = scoringResultAddRequest.getAppId();
@@ -90,32 +130,15 @@ public class ScoringResultController {
         // 判断是否存在
         ScoringResult oldScoringResult = scoringResultService.getById(id);
         ThrowUtils.throwIf(oldScoringResult == null, ErrorCode.NOT_FOUND_ERROR);
+//        if (!oldScoringResult.getUserId().equals(user.getId()) && !userService.isAdmin(request)) {
+//            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+//        }
         // 操作数据库
         boolean result = scoringResultService.removeById(id);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         return ResultUtils.success(true);
     }
 
-    @PostMapping("/update")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Boolean> updateScoringResult(@RequestBody ScoringResultUpdateRequest scoring_resultUpdateRequest) {
-        if (scoring_resultUpdateRequest == null || scoring_resultUpdateRequest.getId() <= 0) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        // todo 在此处将实体类和 DTO 进行转换
-        ScoringResult scoring_result = new ScoringResult();
-        BeanUtils.copyProperties(scoring_resultUpdateRequest, scoring_result);
-        // 数据校验
-        scoringResultService.validScoringResult(scoring_result, false);
-        // 判断是否存在
-        long id = scoring_resultUpdateRequest.getId();
-        ScoringResult oldScoringResult = scoringResultService.getById(id);
-        ThrowUtils.throwIf(oldScoringResult == null, ErrorCode.NOT_FOUND_ERROR);
-        // 操作数据库
-        boolean result = scoringResultService.updateById(scoring_result);
-        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
-        return ResultUtils.success(true);
-    }
 
     @GetMapping("/get/vo")
     public BaseResponse<ScoringResultVO> getScoringResultVOById(long id, HttpServletRequest request) {
@@ -126,6 +149,7 @@ public class ScoringResultController {
         // 获取封装类
         return ResultUtils.success(scoringResultService.getScoringResultVO(scoring_result, request));
     }
+
     @PostMapping("/list/page")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Page<ScoringResult>> listScoringResultByPage(@RequestBody ScoringResultQueryRequest scoring_resultQueryRequest) {
@@ -136,6 +160,7 @@ public class ScoringResultController {
                 scoringResultService.getQueryWrapper(scoring_resultQueryRequest));
         return ResultUtils.success(scoring_resultPage);
     }
+
     @PostMapping("/list/page/vo")
     public BaseResponse<Page<ScoringResultVO>> listScoringResultVOByPage(@RequestBody ScoringResultQueryRequest scoring_resultQueryRequest,
                                                                          HttpServletRequest request) {

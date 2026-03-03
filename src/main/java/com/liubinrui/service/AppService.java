@@ -5,8 +5,11 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.liubinrui.model.dto.app.AppQueryRequest;
 import com.liubinrui.model.entity.App;
+import com.liubinrui.model.entity.QuestionContent;
+import com.liubinrui.model.entity.User;
 import com.liubinrui.model.vo.AppVO;
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * 应用服务
@@ -47,4 +50,5 @@ public interface AppService extends IService<App> {
      * @return
      */
     Page<AppVO> getAppVOPage(Page<App> appPage, HttpServletRequest request);
+    void insertQuestion(Long appId, User loginUser, List<QuestionContent> questionContentDTOList);
 }

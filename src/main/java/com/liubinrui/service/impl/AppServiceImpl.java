@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.liubinrui.exception.BusinessException;
 import com.liubinrui.mapper.QuestionMapper;
 
-import java.util.Date;
+import java.util.*;
 
 import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -20,11 +20,14 @@ import com.liubinrui.mapper.AppMapper;
 import com.liubinrui.model.dto.app.AppQueryRequest;
 import com.liubinrui.model.entity.App;
 
+import com.liubinrui.model.entity.Question;
+import com.liubinrui.model.entity.QuestionContent;
 import com.liubinrui.model.entity.User;
 import com.liubinrui.model.vo.AppVO;
 import com.liubinrui.model.vo.UserVO;
 import com.liubinrui.service.AppService;
 
+import com.liubinrui.service.QuestionService;
 import com.liubinrui.service.UserService;
 
 import com.liubinrui.util.SqlUtils;
@@ -36,9 +39,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -49,7 +49,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -64,13 +63,8 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
 
     @Resource
     private UserService userService;
-
-    /**
-     * 校验数据
-     *
-     * @param app
-     * @param add 对创建的数据进行校验
-     */
+    @Resource
+    private QuestionService questionService;
     @Override
     public void validApp(App app, boolean add) {
         ThrowUtils.throwIf(app == null, ErrorCode.PARAMS_ERROR);
@@ -171,6 +165,27 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
         appVOPage.setRecords(appVOList);
         return appVOPage;
 
+    }
+
+    @Override
+    public void insertQuestion(Long appId, User loginUser, List<QuestionContent> questionContentDTOList) {
+        App app = this.getById(appId);
+        ThrowUtils.throwIf(app==null||appId==null||loginUser.getId()==null,ErrorCode.NOT_FOUND_ERROR);
+        List<Question>questionList=questionContentDTOList.stream().map(questionContent -> {
+           Question question=new Question();
+           question.setOptions(questionContent.getOptions());
+           question.setAppId(appId);
+           question.setQuestionContent(questionContent.getTitle());
+           question.setUserId(loginUser.getId());
+           question.setCreateTime(new Date());
+           question.setUpdateTime(new Date());
+           question.setIsDelete(0);
+           return question;
+        }).collect(Collectors.toList());
+
+        //批量插入到数据库
+        boolean result = questionService.saveBatch(questionList);
+        ThrowUtils.throwIf(!result,ErrorCode.OPERATION_ERROR);
     }
 
 }

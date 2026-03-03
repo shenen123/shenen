@@ -28,6 +28,7 @@ public class UserAnswer implements Serializable {
     /**
      * 应用 id
      */
+    @TableField(value = "app_id", exist = true)
     private Long appId;
 
     /**
@@ -45,7 +46,7 @@ public class UserAnswer implements Serializable {
      */
     @TableField("choices") // 显式指定列名为 choices
     @JsonIgnore
-    private String choicesDb; // 或叫 choicesJson，避免混淆
+    private String choicesJson; // 或叫 choicesJson，避免混淆
 
     // 2. 【逻辑字段】对外暴露 List<String>，但不参与 MP 映射
     @TableField(exist = false) // 关键！告诉 MP：这个字段不存在于数据库
@@ -56,11 +57,11 @@ public class UserAnswer implements Serializable {
         if (this.choices != null) {
             return this.choices; // 支持手动 set
         }
-        if (StrUtil.isBlank(choicesDb)) {
+        if (StrUtil.isBlank(choicesJson)) {
             return new ArrayList<>();
         }
         try {
-            return JSONUtil.toList(choicesDb, String.class);
+            return JSONUtil.toList(choicesJson, String.class);
         } catch (Exception e) {
             // 日志可选
             return new ArrayList<>();
@@ -70,16 +71,16 @@ public class UserAnswer implements Serializable {
     // 4. 重写 setChoices()：序列化到 choicesDb
     public void setChoices(List<String> choices) {
         this.choices = choices; // 缓存，避免重复解析
-        this.choicesDb = JSONUtil.toJsonStr(choices);
+        this.choicesJson = JSONUtil.toJsonStr(choices);
     }
 
     // 5. 提供对 choicesDb 的访问（MP 内部使用）
     public String getChoicesDb() {
-        return choicesDb;
+        return choicesJson;
     }
 
     public void setChoicesDb(String choicesDb) {
-        this.choicesDb = choicesDb;
+        this.choicesJson = choicesDb;
         this.choices = null; // 清缓存，下次 get 时重新解析
     }
 

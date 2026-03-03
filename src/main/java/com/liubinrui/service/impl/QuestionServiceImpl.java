@@ -1,12 +1,10 @@
 package com.liubinrui.service.impl;
 
-import java.util.Date;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-
 import com.liubinrui.common.ErrorCode;
 import com.liubinrui.constant.CommonConstant;
 import com.liubinrui.exception.ThrowUtils;
@@ -24,6 +22,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import com.liubinrui.model.dto.question.QuestionQueryRequest;
+
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
@@ -33,23 +32,15 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/**
- * 题目服务实现
-
- */
 @Service
 @Slf4j
 public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> implements QuestionService {
 
     @Resource
     private UserService userService;
+    @Resource
+    private QuestionMapper questionMapper;
 
-    /**
-     * 校验数据
-     *
-     * @param question
-     * @param add      对创建的数据进行校验
-     */
     @Override
     public void validQuestion(Question question, boolean add) {
         ThrowUtils.throwIf(question == null, ErrorCode.PARAMS_ERROR);
@@ -69,12 +60,6 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         }
     }
 
-    /**
-     * 获取查询条件
-     *
-     * @param questionQueryRequest
-     * @return
-     */
     @Override
     public QueryWrapper<Question> getQueryWrapper(QuestionQueryRequest questionQueryRequest) {
         QueryWrapper<Question> queryWrapper = new QueryWrapper<>();
@@ -93,7 +78,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         // todo 补充需要的查询条件
         // 从多字段中搜索
         // 模糊查询   WHERE questionContent LIKE '%xxx%'
-        queryWrapper.like(StringUtils.isNotBlank(questionContent), "questionContent",questionContent );
+        queryWrapper.like(StringUtils.isNotBlank(questionContent), "questionContent", questionContent);
         // JSON 数组查询  AND JSON_CONTAINS(`options`, '{"key":"A","value":"正确"}', '$')
         if (CollUtil.isNotEmpty(options)) {
             for (QuestionOption option : options) {
@@ -116,13 +101,6 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         return queryWrapper;
     }
 
-    /**
-     * 获取题目封装
-     *
-     * @param question
-     * @param request
-     * @return
-     */
     @Override
     public QuestionVO getQuestionVO(Question question, HttpServletRequest request) {
         // 对象转封装类
@@ -138,13 +116,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         return questionVO;
     }
 
-    /**
-     * 分页获取题目封装
-     *
-     * @param questionPage
-     * @param request
-     * @return
-     */
+
     @Override
     public Page<QuestionVO> getQuestionVOPage(Page<Question> questionPage, HttpServletRequest request) {
         List<Question> questionList = questionPage.getRecords();
@@ -172,4 +144,9 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         return questionVOPage;
     }
 
+
+    public List<Question> getQuestions(Long appId) {
+        ThrowUtils.throwIf(appId == null || appId < 0, ErrorCode.PARAMS_ERROR);
+        return questionMapper.getByAppId(appId);
+    }
 }
